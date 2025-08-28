@@ -11,12 +11,21 @@ namespace MagicVilla_VillaAPI.Controllers
     [ApiController]
     public class VillaAPIController :ControllerBase
     {
+     
+        public VillaAPIController()
+        {
+            
+        }
         [HttpGet]
         public ActionResult<IEnumerable<VillaDTO>> GetVillas()
         {
+           
+                
+            
             return Ok(VillaStore.VillaList);
         }
-        [HttpGet("id:int",Name ="GetVilla")]
+        [HttpGet("{id:int}", Name = "GetVilla")]
+
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -24,6 +33,7 @@ namespace MagicVilla_VillaAPI.Controllers
         {
             if (id == 0)
             {
+                
                 return BadRequest();
             }
             var villa = VillaStore.VillaList.FirstOrDefault(u => u.Id == id);
@@ -57,7 +67,8 @@ namespace MagicVilla_VillaAPI.Controllers
             VillaStore.VillaList.Add(villaDTO);
             return CreatedAtRoute("GetVilla",new {id =villaDTO.Id },villaDTO);
         }
-        [HttpDelete("id:int", Name = "DeleteVilla")]
+        [HttpDelete("{id}", Name = "DeleteVilla")]
+
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -74,7 +85,7 @@ namespace MagicVilla_VillaAPI.Controllers
                 return NotFound();
             }
         }
-        [HttpPut("id:int", Name = "UpdateVilla")]
+        [HttpPut("{id}", Name = "UpdateVilla")]
         public IActionResult UpdateVilla(int id, [FromBody]VillaDTO villaDTO)
         {
             if(villaDTO == null || id == villaDTO.Id)
@@ -87,7 +98,7 @@ namespace MagicVilla_VillaAPI.Controllers
             villa.Occupancy = villaDTO.Occupancy;
             return NoContent();
         }
-        [HttpPut("id:int", Name = "UpdatePartialVilla")]
+        [HttpPatch("{id}", Name = "UpdatePartialVilla")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult UpdatePartialVilla(int id , JsonPatchDocument<VillaDTO> patchDto)
