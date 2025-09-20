@@ -94,6 +94,11 @@ namespace MagicVilla_VillaAPI.Controllers
                     ModelState.AddModelError("Custom Error", "vills Number already Exists");
                     return BadRequest(ModelState);
                 }
+                if(await _db.Get(u=>u.VillaID == createDTO.VillID) == null)
+                {
+                    ModelState.AddModelError("Custom Error", "vills Number already Exists");
+                    return BadRequest(ModelState);
+                }
                 if (createDTO == null)
                 {
                     return BadRequest();
@@ -151,6 +156,8 @@ namespace MagicVilla_VillaAPI.Controllers
             }
         }
         [HttpPut("{id}", Name = "UpdateVillaNumber")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> UpdateVillaNumber(int id, [FromBody] VillNumberUpdateDTO updateDTO)
         {
             try { 
