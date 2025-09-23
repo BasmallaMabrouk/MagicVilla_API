@@ -1,7 +1,6 @@
 ﻿using MagicVilla_VillaAPI.Models;
 using MagicVilla_VillaAPI.Models.DTO;
 using MagicVilla_VillaAPI.Repository.IRepository;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -9,53 +8,74 @@ namespace MagicVilla_VillaAPI.Controllers
 {
     [Route("api/UserAuth")]
     [ApiController]
+    [ApiVersionNeutral]
     public class UserController : Controller
     {
-        private IUserRepository _userRepo;
+        private readonly IUserRepository _userRepo;
         protected APIResponse _response;
+
         public UserController(IUserRepository userRepo)
         {
             _userRepo = userRepo;
-            this._response = new();
+            _response = new();
         }
+
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO model)
         {
-            var LoginResponse = await _userRepo.Login(model);
-            if(LoginResponse.User ==null || string.IsNullOrEmpty(LoginResponse.Token))
+            var loginResponse = await _userRepo.Login(model);
+            if (loginResponse.User == null || string.IsNullOrEmpty(loginResponse.Token))
             {
                 _response.StatusCode = HttpStatusCode.BadRequest;
                 _response.IsSuccess = false;
-                _response.ErrorMassage.Add("UsernName Or Password is Incorrect ");
+                _response.ErrorMassage.Add("Username or Password is incorrect");
                 return BadRequest(_response);
             }
+
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
-            _response.Result = LoginResponse;
+            _response.Result = loginResponse;
             return Ok(_response);
         }
-        [HttpPost("Register")]
+
+        [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterationRequestDTO model)
         {
-          bool ifUserUnique = _userRepo.IsUniqueUser(model.UserName);
-            if (!ifUserUnique)
+            // Input validation
+            if (model == null || string.IsNullOrWhiteSpace(model.UserName) || string.IsNullOrWhiteSpace(model.Password))
             {
                 _response.StatusCode = HttpStatusCode.BadRequest;
                 _response.IsSuccess = false;
-                _response.ErrorMassage.Add("UsernName is alraedy Exist ");
+                _response.ErrorMassage.Add("Username and password are required");
                 return BadRequest(_response);
             }
-            var user = await _userRepo.Register(model);
-            if (user == null) {
+
+            bool ifUserNameUnique = _userRepo.IsUniqueUser(model.UserName);
+            if (!ifUserNameUnique)
+            {
                 _response.StatusCode = HttpStatusCode.BadRequest;
                 _response.IsSuccess = false;
-                _response.ErrorMassage.Add("Error While Registeration ");
+                _response.ErrorMassage.Add("Username already exists");
                 return BadRequest(_response);
-
             }
+
+            var user = await _userRepo.Register(model);
+            if (user == null)
+            {
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMassage.Add("Error while registering. Please try a stronger password.");
+                return BadRequest(_response);
+            }
+
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
-            _response.Result = user;
+            _response.Result = new
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Name = user.Name
+            };
             return Ok(_response);
         }
     }
